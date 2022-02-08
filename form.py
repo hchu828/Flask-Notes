@@ -6,7 +6,7 @@ from wtforms.validators import InputRequired
 class RegisterForm(FlaskForm):
     """Form to register a new user"""
 
-    username = StringField("Username", validators=[InputRequired()])
+    username = StringField("Username", validators=[InputRequired()]) #TODO: length(max)
 
     password = PasswordField("Password", validators=[InputRequired()])
 

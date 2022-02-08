@@ -1,6 +1,6 @@
 """Flask app for Notes"""
 
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User
 from form import RegisterForm, LoginForm, CSRFProtectForm
@@ -21,7 +21,7 @@ connect_db(app)
 
 @app.get("/")
 def get_homepage():
-    """Redirect to register"""
+    """Redirect to register page"""
 
     return redirect("/register")
 
@@ -64,7 +64,7 @@ def login_user():
 
         if user:
             session["user_id"] = user.username
-            return redirect("/secret")
+            return redirect(f"/users/{ user.username }")
         else:
             form.username.errors = [
                 "Account not found. Check username and password."
@@ -75,10 +75,15 @@ def login_user():
 
 @app.get("/users/<username>")
 def get_user_details(username):
-    """Display information about a user. Users can only view their own details."""
+    """Display information about a user. Users can only view their own details
+    except for password.
+    """
 
+    # if we are not logged in or are trying to access another user's details,
+    # redirect to home page
     if "user_id" not in session or session["user_id"] != username:
-        flash("Forbidden request: Please register/login to access this page")
+        flash("Forbidden request: Access denied.") 
+        #TODO: import error library, raise unauthorized
         return redirect("/")
 
     user = User.query.get(username)
@@ -88,14 +93,15 @@ def get_user_details(username):
 
 @app.post("/logout")
 def logout_user():
-    """Logout user by clearing them from session, redirect to homepage."""
+    """Logout user by popping "user_id" from session, redirect to homepage."""
 
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
         session.pop("user_id", None)
-
-    return redirect("/")
+        return redirect("/")
+    else:
+        #TODO: import error library, raise unauthorized
 
 
 @app.get("/secret")
