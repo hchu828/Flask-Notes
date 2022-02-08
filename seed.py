@@ -23,3 +23,6 @@ user2 = User(
 
 db.session.add_all([user1, user2])
 db.session.commit()
+
+# username: test_user 
+# password: 1234

@@ -1,9 +1,9 @@
 """Flask app for Notes"""
 
-from flask import Flask, render_template, request, redirect, jsonify, session
+from flask import Flask, render_template, request, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User
-from form import RegisterForm
+from form import RegisterForm, LoginForm
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///notes"
@@ -77,4 +77,9 @@ def login_user():
 def get_secret():
     """Renders the secret page"""
 
-    return render_template("secret.html")
+    if "user_id" not in session:
+        flash("Forbidden request: Please register/login to access this page")
+        return redirect("/")
+       
+    else:
+        return render_template("secret.html")
