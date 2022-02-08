@@ -21,8 +21,9 @@ user2 = User(
     last_name="Chu",
 )
 
-db.session.add_all([user1, user2])
-db.session.commit()
+test_user = User.register(
+    "test_user", "1234", "test@test.com", "test_first", "test_last"
+)
 
-# username: test_user 
-# password: 1234
+db.session.add_all([user1, user2, test_user])
+db.session.commit()

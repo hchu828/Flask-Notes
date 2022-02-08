@@ -2,6 +2,7 @@
 
 from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
+from werkzeug.exceptions import Unauthorized
 from models import db, connect_db, User
 from form import RegisterForm, LoginForm, CSRFProtectForm
 
@@ -82,9 +83,7 @@ def get_user_details(username):
     # if we are not logged in or are trying to access another user's details,
     # redirect to home page
     if "user_id" not in session or session["user_id"] != username:
-        flash("Forbidden request: Access denied.") 
-        #TODO: import error library, raise unauthorized
-        return redirect("/")
+        raise Unauthorized("Not authorized to access this user's details.")
 
     user = User.query.get(username)
     form = CSRFProtectForm()
@@ -101,7 +100,7 @@ def logout_user():
         session.pop("user_id", None)
         return redirect("/")
     else:
-        #TODO: import error library, raise unauthorized
+        raise Unauthorized("Invalid CSRF token.")
 
 
 @app.get("/secret")
@@ -109,7 +108,6 @@ def get_secret():
     """Renders the secret page"""
 
     if "user_id" not in session:
-        flash("Forbidden request: Please register/login to access this page")
-        return redirect("/")
+        raise Unauthorized("Not authorized to access the secret.")
 
     return render_template("secret.html")
