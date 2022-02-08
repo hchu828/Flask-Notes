@@ -6,27 +6,24 @@ from wtforms.validators import InputRequired
 class RegisterForm(FlaskForm):
     """Form to register a new user"""
 
-    username = StringField("Username",
-        validators=[InputRequired()])
+    username = StringField("Username", validators=[InputRequired()])
 
-    password = PasswordField("Password",
-        validators=[InputRequired()])
+    password = PasswordField("Password", validators=[InputRequired()])
 
-    email = EmailField("Email",
-    validators=[InputRequired()])
+    email = EmailField("Email", validators=[InputRequired()])
 
-    first_name = StringField("First Name",
-        validators=[InputRequired()])
+    first_name = StringField("First Name", validators=[InputRequired()])
 
-    last_name = StringField("Last Name",
-        validators=[InputRequired()])
-        
+    last_name = StringField("Last Name", validators=[InputRequired()])
+
 
 class LoginForm(FlaskForm):
     """Form to login a user"""
 
-    username = StringField("Username",
-        validators=[InputRequired()])
+    username = StringField("Username", validators=[InputRequired()])
 
-    password = PasswordField("Password",
-        validators=[InputRequired()])
+    password = PasswordField("Password", validators=[InputRequired()])
+
+
+class CSRFProtectForm(FlaskForm):
+    """Form used for CSRF protection."""
