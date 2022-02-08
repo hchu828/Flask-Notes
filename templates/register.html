@@ -5,18 +5,20 @@ Register User
 {% endblock %}
 
 {% block content %}
-{{ form.hidden_tag() }}
+<form method="post">
+  {{ form.hidden_tag() }}
 
-{% for field in form if field.widget.input_type != 'hidden' %}
-{{ field.label }}
-{{ field(class="form-control") }}
+  {% for field in form if field.widget.input_type != 'hidden' %}
+  {{ field.label }}
+  {{ field(class="form-control") }}
 
-{% if field.errors %}
-{% for error in field.errors %}
-{{ error }}
-{% endfor %}
-{% endif %}
-{% endfor %}
+  {% if field.errors %}
+  {% for error in field.errors %}
+  {{ error }}
+  {% endfor %}
+  {% endif %}
+  {% endfor %}
 
-<button type="submit" class="btn btn-primary">Register</button>
+  <button type="submit" class="btn btn-primary">Register</button>
+</form>
 {% endblock %}
