@@ -4,7 +4,7 @@ from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import Unauthorized
 from models import db, connect_db, User, Note
-from form import RegisterForm, LoginForm, CSRFProtectForm
+from form import RegisterForm, LoginForm, AddNoteForm, CSRFProtectForm
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///notes"
@@ -20,11 +20,14 @@ toolbar = DebugToolbarExtension(app)
 connect_db(app)
 
 
+# ============================================================
+# Base Routes
+# ============================================================
 @app.get("/")
 def get_homepage():
     """Redirect to register page"""
 
-    return redirect("/register")
+    return redirect("/login")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -74,6 +77,34 @@ def login_user():
     return render_template("login.html", form=form)
 
 
+@app.post("/logout")
+def logout_user():
+    """Logout user by popping "user_id" from session, redirect to homepage."""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit():
+        session.pop("user_id", None)
+        return redirect("/")
+    else:
+        raise Unauthorized("Invalid CSRF token.")
+
+
+@app.get("/secret")
+def get_secret():
+    """Renders the secret page"""
+
+    if "user_id" not in session:
+        raise Unauthorized("Not authorized to access the secret.")
+
+    return render_template("secret.html")
+
+
+# ============================================================
+# User Routes
+# ============================================================
+
+
 @app.get("/users/<username>")
 def get_user_details(username):
     """Display information about a user. Users can only view their own details
@@ -90,18 +121,6 @@ def get_user_details(username):
     return render_template("user_details.html", user=user, form=form)
 
 
-@app.post("/logout")
-def logout_user():
-    """Logout user by popping "user_id" from session, redirect to homepage."""
-
-    form = CSRFProtectForm()
-
-    if form.validate_on_submit():
-        session.pop("user_id", None)
-        return redirect("/")
-    else:
-        raise Unauthorized("Invalid CSRF token.")
-
 @app.post("/users/<username>/delete")
 def delete_user(username):
     """Delete user and notes from db"""
@@ -109,7 +128,7 @@ def delete_user(username):
     form = CSRFProtectForm()
 
     if form.validate_on_submit() and session["user_id"] == username:
-        user = User.query.get(username)    
+        user = User.query.get(username)
         Note.query.filter_by(owner=username).delete()
         db.session.delete(user)
 
@@ -120,11 +139,25 @@ def delete_user(username):
         raise Unauthorized("Invalid CSRF token.")
 
 
-@app.get("/secret")
-def get_secret():
-    """Renders the secret page"""
+# ============================================================
+# Note Routes
+# ============================================================
 
-    if "user_id" not in session:
-        raise Unauthorized("Not authorized to access the secret.")
 
-    return render_template("secret.html")
+@app.route("/users/<username>/notes/add", methods=["GET", "POST"])
+def add_note(username):
+    """Display and processes note form for creating new notes."""
+
+    form = AddNoteForm()
+
+    if form.validate_on_submit() and session["user_id"] == username:
+        title = form.title.data
+        content = form.content.data
+
+        note = Note(title=title, content=content, owner=username)
+        db.session.add(note)
+        db.session.commit()
+        return redirect(f"/users/{username}")
+
+    else:
+        return render_template("add_note.html", form=form)
