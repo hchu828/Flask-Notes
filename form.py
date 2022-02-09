@@ -37,8 +37,8 @@ class LoginForm(FlaskForm):
     )
 
 
-class AddNoteForm(FlaskForm):
-    """Form for adding a new note"""
+class NoteForm(FlaskForm):
+    """Form for adding a new note or editing an existing note"""
 
     title = StringField(
         "Title",

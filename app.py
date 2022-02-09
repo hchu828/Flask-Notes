@@ -4,7 +4,7 @@ from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import Unauthorized
 from models import db, connect_db, User, Note
-from form import RegisterForm, LoginForm, AddNoteForm, CSRFProtectForm
+from form import RegisterForm, LoginForm, NoteForm, CSRFProtectForm
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///notes"
@@ -136,7 +136,7 @@ def delete_user(username):
         session.pop("user_id", None)
         return redirect("/")
     else:
-        raise Unauthorized("Invalid CSRF token.")
+        raise Unauthorized()
 
 
 # ============================================================
@@ -148,7 +148,7 @@ def delete_user(username):
 def add_note(username):
     """Display and processes note form for creating new notes."""
 
-    form = AddNoteForm()
+    form = NoteForm()
 
     if form.validate_on_submit() and session["user_id"] == username:
         title = form.title.data
@@ -161,3 +161,40 @@ def add_note(username):
 
     else:
         return render_template("add_note.html", form=form)
+
+@app.route("/notes/<int:note_id>/update", methods=["GET", "POST"])
+def update_note(note_id):
+    """Update a note and redirect to user details page"""
+
+    note = Note.query.get_or_404(note_id)
+
+    form = NoteForm(obj=note)
+
+    if form.validate_on_submit() and session["user_id"] == note.owner:
+        note.title = form.title.data
+        note.content = form.content.data
+
+        db.session.commit()
+        return redirect(f"/users/{note.owner}")
+
+    else:
+        return render_template("update_note.html", form=form)
+
+@app.post("/notes/<int:note_id>/delete")
+def delete_note(note_id):
+    """Delete note and redirect to user details page"""
+
+    note = Note.query.get_or_404(note_id)
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit() and session["user_id"] == note.owner:
+        db.session.delete(note)
+        db.session.commit()
+
+        return redirect(f"/users/{note.owner}")
+
+    else: 
+        raise Unauthorized()
+
+
