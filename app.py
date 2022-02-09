@@ -111,10 +111,7 @@ def get_user_details(username):
     except for password.
     """
 
-    # if we are not logged in or are trying to access another user's details,
-    # redirect to home page
-    if "user_id" not in session or session["user_id"] != username:
-        raise Unauthorized("Not authorized to access this user's details.")
+    authenticate(username)
 
     user = User.query.get(username)
     form = CSRFProtectForm()
@@ -125,9 +122,10 @@ def get_user_details(username):
 def delete_user(username):
     """Delete user and notes from db"""
 
-    form = CSRFProtectForm()
+    authenticate(username)
 
-    if form.validate_on_submit() and session["user_id"] == username:
+    form = CSRFProtectForm()
+    if form.validate_on_submit():
         user = User.query.get(username)
         Note.query.filter_by(owner=username).delete()
         db.session.delete(user)
@@ -148,9 +146,10 @@ def delete_user(username):
 def add_note(username):
     """Display and processes note form for creating new notes."""
 
-    form = NoteForm()
+    authenticate(username)
 
-    if form.validate_on_submit() and session["user_id"] == username:
+    form = NoteForm()
+    if form.validate_on_submit():
         title = form.title.data
         content = form.content.data
 
@@ -162,15 +161,16 @@ def add_note(username):
     else:
         return render_template("add_note.html", form=form)
 
+
 @app.route("/notes/<int:note_id>/update", methods=["GET", "POST"])
 def update_note(note_id):
     """Update a note and redirect to user details page"""
 
     note = Note.query.get_or_404(note_id)
+    authenticate(note.owner)
 
     form = NoteForm(obj=note)
-
-    if form.validate_on_submit() and session["user_id"] == note.owner:
+    if form.validate_on_submit():
         note.title = form.title.data
         note.content = form.content.data
 
@@ -180,21 +180,24 @@ def update_note(note_id):
     else:
         return render_template("update_note.html", form=form)
 
+
 @app.post("/notes/<int:note_id>/delete")
 def delete_note(note_id):
     """Delete note and redirect to user details page"""
 
     note = Note.query.get_or_404(note_id)
+    authenticate(note.owner)
 
     form = CSRFProtectForm()
-
-    if form.validate_on_submit() and session["user_id"] == note.owner:
+    if form.validate_on_submit():
         db.session.delete(note)
         db.session.commit()
 
         return redirect(f"/users/{note.owner}")
+    else:
+        raise Unauthorized("Invalid CSRF token.")
 
-    else: 
+
+def authenticate(username):
+    if session.get("user_id") != username:
         raise Unauthorized()
-
-

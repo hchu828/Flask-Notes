@@ -25,14 +25,15 @@ User Details
     </li>
     {% endfor %}
 </ul>
-<a href="/users/{{user.username}}/notes/add" class="btn btn-success">Add Note</a>
+<a href="/users/{{user.username}}/notes/add" class="btn btn-success">Add Note
+</a>
 
-<form action="/logout" method="post">
+<form>
     {{ form.hidden_tag() }}
-    <button type="submit" class="btn btn-danger">Logout</button>
+    <button type="submit" formaction="/logout" formmethod="post"
+        class="btn btn-danger">Logout</button>
+    <button type="submit" formaction="/users/{{user.username}}/delete"
+        formmethod="post" class="btn btn-danger">Delete</button>
 </form>
-<form action="/users/{{user.username}}/delete" method="post">
-    {{ form.hidden_tag() }}
-    <button type="submit" class="btn btn-danger">Delete</button>
-</form>
+
 {% endblock %}
