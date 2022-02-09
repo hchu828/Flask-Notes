@@ -13,21 +13,25 @@ User Details
 <p>Last name: {{ user.last_name }}</p>
 
 <ul>
-  {% for note in user.notes %}
-  <li>
-    <b>{{ note.title }}</b><br>
-    {{ note.content }}<br>
-    <a href="/notes/{{ note.id }}/update" class="btn btn-primary">Edit</a>
-    <form action="/notes/{{ note.id }}/delete" method="post">
-      {{ form.hidden_tag() }}
-      <button type="submit" class="btn btn-danger">Delete</button>
-    </form>
-  </li>
-  {% endfor %}
+    {% for note in user.notes %}
+    <li>
+        <b>{{ note.title }}</b><br>
+        {{ note.content }}<br>
+        <a href="/notes/{{ note.id }}/update" class="btn btn-primary">Edit</a>
+        <form action="/notes/{{ note.id }}/delete" method="post">
+            {{ form.hidden_tag() }}
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </li>
+    {% endfor %}
 </ul>
 
 <form action="/logout" method="post">
-  {{ form.hidden_tag() }}
-  <button type="submit" class="btn btn-danger">Logout</button>
+    {{ form.hidden_tag() }}
+    <button type="submit" class="btn btn-danger">Logout</button>
+</form>
+<form action="/users/{{user.username}}/delete" method="post">
+    {{ form.hidden_tag() }}
+    <button type="submit" class="btn btn-danger">Delete</button>
 </form>
 {% endblock %}

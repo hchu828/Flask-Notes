@@ -3,7 +3,7 @@
 from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from werkzeug.exceptions import Unauthorized
-from models import db, connect_db, User
+from models import db, connect_db, User, Note
 from form import RegisterForm, LoginForm, CSRFProtectForm
 
 app = Flask(__name__)
@@ -97,6 +97,23 @@ def logout_user():
     form = CSRFProtectForm()
 
     if form.validate_on_submit():
+        session.pop("user_id", None)
+        return redirect("/")
+    else:
+        raise Unauthorized("Invalid CSRF token.")
+
+@app.post("/users/<username>/delete")
+def delete_user(username):
+    """Delete user and notes from db"""
+
+    form = CSRFProtectForm()
+
+    if form.validate_on_submit() and session["user_id"] == username:
+        user = User.query.get(username)    
+        Note.query.filter_by(owner=username).delete()
+        db.session.delete(user)
+
+        db.session.commit()
         session.pop("user_id", None)
         return redirect("/")
     else:

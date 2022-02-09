@@ -1,4 +1,4 @@
-from models import db, User
+from models import db, User, Note
 from app import app
 
 
@@ -26,4 +26,8 @@ test_user = User.register(
 )
 
 db.session.add_all([user1, user2, test_user])
+db.session.commit()
+
+note = Note(title="title", content="some text", owner="test_user")
+db.session.add(note)
 db.session.commit()
